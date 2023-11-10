@@ -16,7 +16,7 @@ export default function (
     console.error(`Server Error ${err.name}: ${err}`);
     res
       .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: "На сервере произошла." });
+      .send({ message: "На сервере произошла ошибка." });
   }
 
   next();

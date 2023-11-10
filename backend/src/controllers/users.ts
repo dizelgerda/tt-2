@@ -12,13 +12,13 @@ import NotFoundError from "../utils/errors/NotFoundError";
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const { name, email, password } = req.body;
+    console.log(req.body);
 
     const hash = await bcrypt.hash(password, await bcrypt.genSalt());
     const user = await User.create({ name, email, password: hash });
 
     res.status(constants.HTTP_STATUS_CREATED).send({ _id: user._id });
   } catch (err) {
-    console.log((err as Error).name);
     if (err instanceof mongoose.Error.ValidationError) {
       next(new ValidationError(err.message));
       // } else if (
@@ -60,7 +60,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export function logout(req: Request, res: Response) {
+export function logout(_req: Request, res: Response) {
   res.clearCookie("jwt").send({ message: "Выход успешен." });
 }
 
