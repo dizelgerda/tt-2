@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 import User from "./user";
+import File from "./file";
 
 interface News {
+  _id: mongoose.Schema.Types.ObjectId;
   text: string;
   owner: mongoose.Schema.Types.ObjectId;
   published: boolean;
   publishedAt: Date;
+  files: mongoose.Schema.Types.ObjectId[];
 }
-
-console.log(User.modelName);
 
 const newsSchema = new mongoose.Schema<News>(
   {
@@ -28,6 +29,11 @@ const newsSchema = new mongoose.Schema<News>(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: User.modelName,
+    },
+    files: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: File.modelName,
+      default: [],
     },
   },
   {

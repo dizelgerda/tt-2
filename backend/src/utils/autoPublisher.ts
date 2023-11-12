@@ -10,11 +10,9 @@ export function autoPublisher() {
 
         const now = Date.now();
 
-        for (let i = 0; i != news.length; i++) {
-          const document = news[i];
-
-          if (now >= document.publishedAt.getTime()) {
-            document.updateOne({ published: true, publishedAt: now });
+        for (const doc of news) {
+          if (now >= doc.publishedAt.getTime()) {
+            doc.updateOne({ published: true, publishedAt: now });
           } else {
             break;
           }

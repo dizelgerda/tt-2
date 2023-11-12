@@ -6,11 +6,17 @@ import errorHandler from "./middlewares/errorHandler";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { autoPublisher } from "./utils/autoPublisher";
+import fileUpload from "express-fileupload";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(
+  fileUpload({
+    createParentPath: true,
+  }),
+);
 
 app.use(cors(config.corsOptions));
 
@@ -26,5 +32,4 @@ app.listen(config.PORT, () => {
 
 process.on("uncaughtException", () => {
   clearInterval(publicationInterval);
-  console.log("Тут уже не спасти");
 });

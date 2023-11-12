@@ -5,11 +5,15 @@ import { constants } from "node:http2";
 import bcrypt from "bcryptjs";
 import User from "../models/user";
 import config from "../config";
-import AuthError from "../utils/errors/AuthError";
-import ValidationError from "../utils/errors/ValidationError";
+import UnauthorizedError from "../utils/errors/UnauthorizedError";
+import BadRequestError from "../utils/errors/BadRequestError";
 import NotFoundError from "../utils/errors/NotFoundError";
 
-export async function create(req: Request, res: Response, next: NextFunction) {
+export async function createUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { name, email, password } = req.body;
     console.log(req.body);
@@ -20,7 +24,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
     res.status(constants.HTTP_STATUS_CREATED).send({ _id: user._id });
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      next(new ValidationError(err.message));
+      next(new BadRequestError(err.message));
       // } else if (
       //   err && err.code && err.code === 11000
       // ) {
@@ -37,10 +41,10 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
     const user = await User.findOne({ email })
       .select("+password")
-      .orFail(new AuthError("Необходима авторизация."));
+      .orFail(new UnauthorizedError());
 
     if (!(await bcrypt.compare(password, user.password))) {
-      throw new AuthError("Необходима авторизация.");
+      throw new UnauthorizedError();
     }
 
     const token = jwt.sign({ _id: user._id }, config.SECRET_KEY);
@@ -53,7 +57,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       .send({ message: "Авторизация прошла успешно" });
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
-      next(new ValidationError(err.message));
+      next(new BadRequestError(err.message));
     } else {
       next(err);
     }

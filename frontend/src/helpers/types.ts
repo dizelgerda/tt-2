@@ -5,3 +5,12 @@ export type User = {
   name: string;
   email: string;
 };
+
+export type News = {
+  _id: string;
+  text: string;
+  owner: string | User;
+  published: boolean;
+  publishedAt: string;
+  files: string[];
+};

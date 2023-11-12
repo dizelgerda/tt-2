@@ -1,7 +1,10 @@
 "use client";
-import { postNews } from "@helpers/api";
-import { PlainObject } from "@helpers/types";
-import { ChangeEvent, useState, MouseEvent } from "react";
+
+import { uploadFile } from "@helpers/api/files";
+import { createNews, getNewsByID } from "@helpers/api/news";
+import { News, PlainObject } from "@helpers/types";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChangeEvent, useState, MouseEvent, useEffect } from "react";
 import { Button, Card, Form, InputGroup, Stack } from "react-bootstrap";
 
 const TIME_ARRAY: PlainObject<number> = {
@@ -53,6 +56,28 @@ function parseDate(dateInput: string, timeInput: string): Date {
 
 export default function EditNews() {
   const [data, setData] = useState<PlainObject<string | boolean>>({});
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  async function fetchNews(newsID: string) {
+    try {
+      console.log(newsID);
+      const res = await getNewsByID(newsID);
+      if (res.ok) {
+        const news = (await res.json()) as News;
+        console.log(news);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    const newsID = searchParams.get("newsID");
+    if (newsID) {
+      fetchNews(newsID);
+    }
+  }, []);
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -85,6 +110,8 @@ export default function EditNews() {
   async function handleSubmit(e: ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     let publishedAt;
+    const files = (e.target.elements.namedItem("files") as HTMLInputElement)
+      .files as FileList;
 
     if (data.delayed) {
       publishedAt = parseDate(
@@ -95,10 +122,31 @@ export default function EditNews() {
       );
     }
 
-    postNews({
-      text: data.text as string,
-      publishedAt,
-    });
+    try {
+      const res = await createNews({
+        text: data.text as string,
+        publishedAt,
+      });
+
+      if (res.ok) {
+        if (files) {
+          const news = await res.json();
+          const formData = new FormData();
+
+          for (const file of Array.from(files)) {
+            formData.append(file.name, file);
+
+            console.log(formData.get(file.name));
+          }
+
+          await uploadFile(formData, news._id);
+        }
+
+        router.push("/profile");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (
@@ -119,7 +167,10 @@ export default function EditNews() {
                 rows={10}
               />
             </Form.Group>
-            <Form.Group></Form.Group>
+            <Form.Group>
+              <Form.Label>Прикрепленные файлы</Form.Label>
+              <Form.Control type="file" name="files" multiple />
+            </Form.Group>
             <Form.Group>
               <Form.Check
                 id="delayed"

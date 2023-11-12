@@ -1,14 +1,13 @@
 "use client";
-import { login } from "@helpers/api";
+
+import { login } from "@helpers/api/users";
 import { PlainObject } from "@helpers/types";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Button, Card, Form, Stack } from "react-bootstrap";
 
 export default function SignIn() {
   const [data, setData] = useState<PlainObject>({});
-  const router = useRouter();
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -19,8 +18,7 @@ export default function SignIn() {
     e.preventDefault();
 
     try {
-      await login({ email: data.email, password: data.password });
-      router.push("/");
+      await login(data.email, data.password);
     } catch (err) {
       console.error(err);
     }

@@ -1,7 +1,7 @@
-import { logout } from "@helpers/api";
+import { logout } from "@helpers/api/users";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Col, Container, Navbar, Row, Stack } from "react-bootstrap";
+import { Button, Container, Navbar, Stack } from "react-bootstrap";
 
 export default function Header() {
   const router = useRouter();
@@ -28,9 +28,12 @@ export default function Header() {
         </Stack>
 
         <Stack direction="horizontal" gap={2}>
-          <Button variant="link" type="button">
-            Профиль
-          </Button>
+          <Link href="/profile">
+            <Button variant="link" type="button">
+              Профиль
+            </Button>
+          </Link>
+
           <Button
             variant="outline-secondary"
             type="button"

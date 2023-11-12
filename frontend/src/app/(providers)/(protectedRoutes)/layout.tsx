@@ -1,6 +1,7 @@
 "use client";
+
 import Header from "@components/Header";
-import { getCurrentUser } from "@helpers/api";
+import { useAppSelector } from "@helpers/store/hooks";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import { Container } from "react-bootstrap";
@@ -11,17 +12,13 @@ interface ProtectedLayoutProps {
 
 export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const router = useRouter();
-
-  async function checkAuth() {
-    const res = await getCurrentUser();
-    if (!res.ok) {
-      router.push("/sign-in");
-    }
-  }
+  const currentUser = useAppSelector((store) => store.currentUser);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (!currentUser) {
+      router.push("/sign-in");
+    }
+  }, [currentUser]);
 
   return (
     <>

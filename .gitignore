@@ -3,4 +3,6 @@ dist
 build
 .env
 
+files
+
 .DS_Store

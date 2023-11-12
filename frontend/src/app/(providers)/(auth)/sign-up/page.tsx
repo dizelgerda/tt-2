@@ -1,4 +1,5 @@
 "use client";
+
 import { register } from "@helpers/api";
 import { PlainObject } from "@helpers/types";
 import Link from "next/link";
@@ -19,7 +20,6 @@ export default function SignUp() {
     e.preventDefault();
 
     try {
-      console.log(data);
       const res = await register({
         name: data.name,
         email: data.email,

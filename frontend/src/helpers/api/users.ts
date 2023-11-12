@@ -1,19 +1,12 @@
 const BASE_URL = "http://localhost:3000";
 
-export function getCurrentUser() {
-  return fetch(`${BASE_URL}/users/me`, {
-    method: "GET",
-    credentials: "include",
-  });
-}
-
-interface RegisterData {
+interface CreateUserData {
   name: string;
   email: string;
   password: string;
 }
 
-export function register(data: RegisterData) {
+export function createUser(data: CreateUserData) {
   return fetch(`${BASE_URL}/sign-up`, {
     method: "POST",
     headers: {
@@ -24,19 +17,14 @@ export function register(data: RegisterData) {
   });
 }
 
-interface LoginData {
-  email: string;
-  password: string;
-}
-
-export function login(data: LoginData) {
+export function login(email: string, password: string) {
   return fetch(`${BASE_URL}/sign-in`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include",
-    body: JSON.stringify(data),
+    body: JSON.stringify({ email, password }),
   });
 }
 
@@ -47,18 +35,9 @@ export function logout() {
   });
 }
 
-interface PostNewsData {
-  text: string;
-  publishedAt?: Date;
-}
-
-export function postNews(data: PostNewsData) {
-  return fetch(`${BASE_URL}/news`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+export function getCurrentUser() {
+  return fetch(`${BASE_URL}/users/me`, {
+    method: "GET",
     credentials: "include",
-    body: JSON.stringify(data),
   });
 }

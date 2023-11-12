@@ -1,5 +1,6 @@
 "use client";
-import { getCurrentUser } from "@helpers/api";
+
+import { useAppSelector } from "@helpers/store/hooks";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import { Col, Container, Row } from "react-bootstrap";
@@ -10,17 +11,13 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   const router = useRouter();
-
-  async function checkAuth() {
-    const res = await getCurrentUser();
-    if (res.ok) {
-      router.push("/");
-    }
-  }
+  const currentUser = useAppSelector((store) => store.currentUser);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (currentUser) {
+      router.push("/");
+    }
+  }, [currentUser]);
 
   return (
     <Container className="mt-5">
