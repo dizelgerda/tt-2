@@ -1,11 +1,11 @@
 "use client";
 
 import NewsCard from "@components/NewsCard";
-import { getNewsByOwner } from "@helpers/api/news";
+import { deleteNews, getNewsByOwner } from "@helpers/api/news";
 import { useAppSelector } from "@helpers/store/hooks";
 import { News, User } from "@helpers/types";
 import { useEffect, useState } from "react";
-import { Col, Container, Row, Stack } from "react-bootstrap";
+import { Alert, Col, Container, Row, Stack } from "react-bootstrap";
 
 export default function Profile() {
   const [publishedNews, setPublishedNews] = useState<News[]>([]);
@@ -26,8 +26,22 @@ export default function Profile() {
   }
 
   useEffect(() => {
-    fetchNews();
-  }, []);
+    if (currentUser) {
+      fetchNews();
+    }
+  }, [currentUser]);
+
+  async function handleDelete(id: string) {
+    try {
+      const res = await deleteNews(id);
+
+      if (res.ok) {
+        fetchNews();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   return (
     <Container>
@@ -35,11 +49,13 @@ export default function Profile() {
         <h2 className="mb-3">Неопубликованные</h2>
         <Col>
           <Stack gap={4}>
-            {unpublishedNews.length
-              ? unpublishedNews.map((news) => (
-                  <NewsCard key={news._id} {...news} />
-                ))
-              : null}
+            {unpublishedNews.length ? (
+              unpublishedNews.map((news) => (
+                <NewsCard key={news._id} {...news} onDelete={handleDelete} />
+              ))
+            ) : (
+              <Alert variant="secondary">Все новости опубликованы.</Alert>
+            )}
           </Stack>
         </Col>
       </Row>
@@ -47,11 +63,15 @@ export default function Profile() {
         <h2 className="mb-3">Опубликовано</h2>
         <Col>
           <Stack gap={4}>
-            {publishedNews.length
-              ? publishedNews.map((news) => (
-                  <NewsCard key={news._id} {...news} />
-                ))
-              : null}
+            {publishedNews.length ? (
+              publishedNews.map((news) => (
+                <NewsCard key={news._id} {...news} onDelete={handleDelete} />
+              ))
+            ) : (
+              <Alert variant="secondary">
+                Вы пока не опубликовали ни одной новости.
+              </Alert>
+            )}
           </Stack>
         </Col>
       </Row>

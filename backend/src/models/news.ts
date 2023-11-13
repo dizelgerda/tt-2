@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import User from "./user";
-import File from "./file";
+import File, { IFile } from "./file";
 
 interface News {
   _id: mongoose.Schema.Types.ObjectId;
@@ -8,7 +8,7 @@ interface News {
   owner: mongoose.Schema.Types.ObjectId;
   published: boolean;
   publishedAt: Date;
-  files: mongoose.Schema.Types.ObjectId[];
+  files: mongoose.Schema.Types.ObjectId[] | IFile[];
 }
 
 const newsSchema = new mongoose.Schema<News>(

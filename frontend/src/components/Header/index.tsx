@@ -17,9 +17,11 @@ export default function Header() {
     <Navbar className="bg-light mb-4">
       <Container>
         <Stack direction="horizontal" gap={2}>
-          <Button variant="link" type="button">
-            Главная
-          </Button>
+          <Link href="/">
+            <Button variant="link" type="button">
+              Главная
+            </Button>
+          </Link>
           <Link href="/news/edit">
             <Button variant="outline-success" type="button">
               Добавить новость

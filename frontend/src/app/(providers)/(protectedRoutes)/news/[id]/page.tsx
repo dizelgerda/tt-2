@@ -1,9 +1,11 @@
 "use client";
 
-import { getNewsByID } from "@helpers/api";
-import { News } from "@helpers/types";
+import FileCard from "@components/FileCard";
+import { getNewsByID } from "@helpers/api/news";
+import { News, File } from "@helpers/types";
 import { useEffect, useState } from "react";
-import { Card, Container } from "react-bootstrap";
+import { Card, Col, Container, Row, Stack } from "react-bootstrap";
+import Markdown from "react-markdown";
 
 interface NewsViewerProps {
   params: {
@@ -34,9 +36,22 @@ export default function NewsViewer({
   return (
     <Container>
       {data ? (
-        <Card>
-          <Card.Body>{data.text}</Card.Body>
-        </Card>
+        <Row>
+          <Col lg="8">
+            <Card>
+              <Card.Body>
+                <Markdown>{data.text}</Markdown>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col lg="4">
+            <Stack gap={3}>
+              {(data.files as File[]).map((file) => {
+                return <FileCard key={file._id} {...file} />;
+              })}
+            </Stack>
+          </Col>
+        </Row>
       ) : null}
     </Container>
   );

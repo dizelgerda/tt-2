@@ -4,6 +4,13 @@ export type User = {
   _id: string;
   name: string;
   email: string;
+  createdAt: string;
+};
+
+export type File = {
+  _id: string;
+  name: string;
+  newsID: string;
 };
 
 export type News = {
@@ -12,5 +19,5 @@ export type News = {
   owner: string | User;
   published: boolean;
   publishedAt: string;
-  files: string[];
+  files: string[] | File[];
 };

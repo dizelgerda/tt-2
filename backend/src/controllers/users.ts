@@ -82,3 +82,23 @@ export async function getCurrentUser(
     next(err);
   }
 }
+
+export async function getUserByID(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { docID: userID } = req.params;
+
+    const user = await User.findById(userID).orFail(new NotFoundError());
+
+    res.send(user);
+  } catch (err) {
+    if (err instanceof mongoose.Error.CastError) {
+      next(new BadRequestError(err.message));
+    } else {
+      next(err);
+    }
+  }
+}

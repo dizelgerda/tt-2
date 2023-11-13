@@ -14,3 +14,10 @@ export function getFile(id: string) {
     credentials: "include",
   });
 }
+
+export function deleteFile(id: string) {
+  return fetch(`${BASE_URL}/files/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+}

@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 
-interface File {
+export interface IFile {
+  _id: mongoose.Schema.Types.ObjectId;
   name: string;
   newsID: mongoose.Schema.Types.ObjectId;
 }
 
-const fileSchema = new mongoose.Schema<File>(
+const fileSchema = new mongoose.Schema<IFile>(
   {
     name: {
       type: mongoose.Schema.Types.String,
@@ -27,4 +28,4 @@ const fileSchema = new mongoose.Schema<File>(
   },
 );
 
-export default mongoose.model<File>("file", fileSchema);
+export default mongoose.model<IFile>("file", fileSchema);

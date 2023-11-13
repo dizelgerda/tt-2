@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon",
     "lint": "npx eslint src/**",
-    "lint:fix": "npx eslint src/** --fix && npx prettier src/** --write",
+    "lint:fix": "npx prettier src/** --write && npx eslint src/** --fix",
     "start DB": "brew services start mongodb-community@4.4",
     "stop DB": "brew services stop mongodb-community@4.4",
     "build": "tsc",

@@ -8,6 +8,7 @@ import File from "../models/file";
 import fs from "fs";
 import path from "node:path";
 import { constants } from "node:http2";
+import mongoose from "mongoose";
 
 export async function uploadFiles(
   req: Request,
@@ -17,7 +18,6 @@ export async function uploadFiles(
   try {
     const { docID } = req.params;
     const currentUser = req.app.get("currentUser");
-    const files = [];
 
     if (!req.files) {
       throw new BadRequestError("Фалы отсутствуют.");
@@ -29,6 +29,7 @@ export async function uploadFiles(
       throw new ForbiddenError();
     }
 
+    const files = [...news.files];
     for (const key of Object.keys(req.files)) {
       const file = req.files[key] as UploadedFile;
       const doc = new File({
@@ -37,7 +38,7 @@ export async function uploadFiles(
       });
 
       fs.writeFileSync(
-        path.join(".", "files", `${doc._id}-${doc.name}`),
+        path.join(__dirname, "..", "..", "files", `${doc._id}-${doc.name}`),
         file.data,
       );
       await doc.save();
@@ -50,7 +51,14 @@ export async function uploadFiles(
       .status(constants.HTTP_STATUS_CREATED)
       .send({ message: "Файл сохранен." });
   } catch (err) {
-    next(err);
+    if (
+      err instanceof mongoose.Error.CastError ||
+      err instanceof mongoose.Error.ValidationError
+    ) {
+      next(new BadRequestError(err.message));
+    } else {
+      next(err);
+    }
   }
 }
 
@@ -75,5 +83,41 @@ export async function getFileByID(
     );
   } catch (err) {
     next(err);
+  }
+}
+
+export async function deleteFile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { docID: fileID } = req.params;
+    const currentUser = req.app.get("currentUser");
+
+    const doc = await File.findById(fileID).orFail(new NotFoundError());
+    const news = await News.findById(doc.newsID).orFail(new NotFoundError());
+
+    if (String(news.owner) !== currentUser._id) {
+      throw new ForbiddenError();
+    }
+
+    fs.unlinkSync(
+      path.join(__dirname, "..", "..", "files", `${doc._id}-${doc.name}`),
+    );
+    await Promise.all([
+      doc.deleteOne(),
+      news.updateOne({ $pull: { files: doc._id } }),
+    ]);
+
+    await news.populate("files");
+
+    res.send(news);
+  } catch (err) {
+    if (err instanceof mongoose.Error.CastError) {
+      next(new BadRequestError(err.message));
+    } else {
+      next(err);
+    }
   }
 }

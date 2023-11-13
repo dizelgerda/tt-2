@@ -1,11 +1,19 @@
 "use client";
 
-import { uploadFile } from "@helpers/api/files";
-import { createNews, getNewsByID } from "@helpers/api/news";
-import { News, PlainObject } from "@helpers/types";
+import { deleteFile, uploadFile } from "@helpers/api/files";
+import { createNews, getNewsByID, updateNews } from "@helpers/api/news";
+import { News, PlainObject, File } from "@helpers/types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChangeEvent, useState, MouseEvent, useEffect } from "react";
-import { Button, Card, Form, InputGroup, Stack } from "react-bootstrap";
+import { ChangeEvent, useState, MouseEvent, useEffect, useRef } from "react";
+import {
+  Button,
+  Card,
+  CloseButton,
+  Container,
+  Form,
+  InputGroup,
+  Stack,
+} from "react-bootstrap";
 
 const TIME_ARRAY: PlainObject<number> = {
   "10m": 10 * 60 * 1000,
@@ -44,28 +52,37 @@ function formatTime(date: Date): string {
 function parseDate(dateInput: string, timeInput: string): Date {
   const date = new Date(0);
 
-  let [YYYY, MONTH, DD] = dateInput.split("-").map((value) => Number(value));
-  let [HH, MINUTES] = timeInput.split(":").map((value) => Number(value));
-  MONTH -= 1;
+  const [YYYY, MONTH, DD] = dateInput.split("-").map((value) => Number(value));
+  const [HH, MINUTES] = timeInput.split(":").map((value) => Number(value));
 
-  date.setFullYear(YYYY, MONTH, DD);
+  date.setFullYear(YYYY, MONTH - 1, DD);
   date.setHours(HH, MINUTES);
 
   return date;
 }
 
 export default function EditNews() {
-  const [data, setData] = useState<PlainObject<string | boolean>>({});
+  const [data, setData] = useState<PlainObject<string | boolean | File[]>>({});
+  const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   async function fetchNews(newsID: string) {
     try {
-      console.log(newsID);
       const res = await getNewsByID(newsID);
       if (res.ok) {
         const news = (await res.json()) as News;
-        console.log(news);
+        const publishedDate = new Date(news.publishedAt);
+
+        setData({
+          newsID: news._id,
+          published: news.published,
+          delayed: !news.published,
+          text: news.text,
+          publicationDate: formatDate(publishedDate),
+          publicationTime: formatTime(publishedDate),
+          savedFiles: news.files as File[],
+        });
       }
     } catch (err) {
       console.error(err);
@@ -78,6 +95,13 @@ export default function EditNews() {
       fetchNews(newsID);
     }
   }, []);
+
+  useEffect(() => {
+    if (!searchParams.has("newsID") && formRef.current) {
+      formRef.current.reset();
+      setData({});
+    }
+  }, [searchParams]);
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -107,6 +131,19 @@ export default function EditNews() {
     setData({ ...data, [name]: checked });
   }
 
+  async function handleDeleteFile(id: string) {
+    try {
+      const res = await deleteFile(id);
+
+      if (res.ok) {
+        const news = (await res.json()) as News;
+        setData({ ...data, savedFiles: news.files as File[] });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function handleSubmit(e: ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     let publishedAt;
@@ -123,21 +160,27 @@ export default function EditNews() {
     }
 
     try {
-      const res = await createNews({
-        text: data.text as string,
-        publishedAt,
-      });
+      let res;
+      if (data.newsID) {
+        res = await updateNews(data.newsID as string, {
+          text: data.text as string,
+          publishedAt,
+        });
+      } else {
+        res = await createNews({
+          text: data.text as string,
+          publishedAt,
+        });
+      }
 
       if (res.ok) {
-        if (files) {
+        if (files && files.length) {
           const news = await res.json();
           const formData = new FormData();
 
-          for (const file of Array.from(files)) {
+          Array.from(files).forEach((file) => {
             formData.append(file.name, file);
-
-            console.log(formData.get(file.name));
-          }
+          });
 
           await uploadFile(formData, news._id);
         }
@@ -150,111 +193,135 @@ export default function EditNews() {
   }
 
   return (
-    <Card>
-      <Card.Body>
-        <Card.Title>Редактор новостей</Card.Title>
-        <Form onSubmit={handleSubmit}>
-          <Stack gap={3}>
-            <Form.Group>
-              <Form.Label>Текст</Form.Label>
-              <Form.Control
-                as="textarea"
-                type="text"
-                name="text"
-                required
-                value={(data.text as string) ?? ""}
-                onChange={handleChange}
-                rows={10}
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Прикрепленные файлы</Form.Label>
-              <Form.Control type="file" name="files" multiple />
-            </Form.Group>
-            <Form.Group>
-              <Form.Check
-                id="delayed"
-                type="checkbox"
-                label="Отложенная публикация"
-                name="delayed"
-                checked={(data.delayed as boolean) ?? false}
-                onChange={handleChecked}
-              />
-              {data.delayed ? (
-                <InputGroup className="mt-2">
-                  <Form.Control
-                    type="date"
-                    name="publicationDate"
-                    required
-                    value={
-                      (data.publicationDate as string) ?? formatDate(new Date())
-                    }
-                    onChange={handleChange}
-                    min={formatDate(new Date())}
-                  ></Form.Control>
-                  <Form.Control
-                    type="time"
-                    name="publicationTime"
-                    required
-                    value={
-                      (data.publicationTime as string) ??
-                      formatTime(
-                        new Date(new Date().getTime() + TIME_ARRAY["10m"]),
-                      )
-                    }
-                    onChange={handleChange}
-                  ></Form.Control>
-                  <Button
-                    variant="outline-secondary"
-                    type="button"
-                    value="30m"
-                    onClick={handleAddTime}
-                  >
-                    +30 м
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    type="button"
-                    value="1h"
-                    onClick={handleAddTime}
-                  >
-                    +1 ч
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    type="button"
-                    value="2h"
-                    onClick={handleAddTime}
-                  >
-                    +2 ч
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    type="button"
-                    value="5h"
-                    onClick={handleAddTime}
-                  >
-                    +5 ч
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    type="button"
-                    value="1d"
-                    onClick={handleAddTime}
-                  >
-                    +1 д
-                  </Button>
-                </InputGroup>
+    <Container>
+      <Card>
+        <Card.Body>
+          <Card.Title>Редактор новостей</Card.Title>
+          <Form id="form" ref={formRef} onSubmit={handleSubmit}>
+            <Stack gap={3}>
+              <Form.Group>
+                <Form.Label>Текст</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  type="text"
+                  name="text"
+                  required
+                  value={(data.text as string) ?? ""}
+                  onChange={handleChange}
+                  rows={10}
+                />
+              </Form.Group>
+
+              <Form.Group>
+                <Form.Label>Прикрепленные файлы</Form.Label>
+                {data.savedFiles && (data.savedFiles as File[]).length ? (
+                  <Stack className="mb-2" direction="horizontal" gap={2}>
+                    {(data.savedFiles as File[]).map(({ _id, name }) => {
+                      return (
+                        <Card className="bg-light p-1" key={_id}>
+                          <Stack direction="horizontal" gap={2}>
+                            {name}{" "}
+                            <CloseButton
+                              value={_id}
+                              onClick={() => handleDeleteFile(_id)}
+                            />
+                          </Stack>
+                        </Card>
+                      );
+                    })}
+                  </Stack>
+                ) : null}
+                <Form.Control type="file" name="files" multiple />
+              </Form.Group>
+
+              {!data.published ? (
+                <Form.Group>
+                  <Form.Check
+                    id="delayed"
+                    type="checkbox"
+                    label="Отложенная публикация"
+                    name="delayed"
+                    checked={(data.delayed as boolean) ?? false}
+                    onChange={handleChecked}
+                  />
+                  {data.delayed ? (
+                    <InputGroup className="mt-2">
+                      <Form.Control
+                        type="date"
+                        name="publicationDate"
+                        required
+                        value={
+                          (data.publicationDate as string) ??
+                          formatDate(new Date())
+                        }
+                        onChange={handleChange}
+                        min={formatDate(new Date())}
+                      ></Form.Control>
+                      <Form.Control
+                        type="time"
+                        name="publicationTime"
+                        required
+                        value={
+                          (data.publicationTime as string) ??
+                          formatTime(
+                            new Date(new Date().getTime() + TIME_ARRAY["10m"]),
+                          )
+                        }
+                        onChange={handleChange}
+                      ></Form.Control>
+                      <Button
+                        variant="outline-secondary"
+                        type="button"
+                        value="30m"
+                        onClick={handleAddTime}
+                      >
+                        +30 м
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        type="button"
+                        value="1h"
+                        onClick={handleAddTime}
+                      >
+                        +1 ч
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        type="button"
+                        value="2h"
+                        onClick={handleAddTime}
+                      >
+                        +2 ч
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        type="button"
+                        value="5h"
+                        onClick={handleAddTime}
+                      >
+                        +5 ч
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        type="button"
+                        value="1d"
+                        onClick={handleAddTime}
+                      >
+                        +1 д
+                      </Button>
+                    </InputGroup>
+                  ) : null}
+                </Form.Group>
               ) : null}
-            </Form.Group>
-            <div>
-              <Button variant="primary" type="submit">
-                Опубликовать
-              </Button>
-            </div>
-          </Stack>
-        </Form>
-      </Card.Body>
-    </Card>
+              <div>
+                <Button variant="primary" type="submit">
+                  Опубликовать
+                </Button>
+              </div>
+            </Stack>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }

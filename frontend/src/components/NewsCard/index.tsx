@@ -2,8 +2,21 @@ import { News } from "@helpers/types";
 import Link from "next/link";
 import { Button, Card, Stack } from "react-bootstrap";
 
-export default function NewsCard({ _id, published, publishedAt }: News) {
+interface NewsCardProps extends News {
+  onDelete(id: string): void;
+}
+
+export default function NewsCard({
+  _id,
+  published,
+  publishedAt,
+  onDelete,
+}: NewsCardProps) {
   const publicationDate = new Date(publishedAt);
+
+  function handleDelete() {
+    onDelete(_id);
+  }
 
   return (
     <Card>
@@ -12,7 +25,12 @@ export default function NewsCard({ _id, published, publishedAt }: News) {
           <Card.Title className="mb-3">Новость {_id}</Card.Title>{" "}
         </Link>
         <Stack direction="horizontal" gap={2}>
-          <Button size="sm" variant="outline-danger">
+          <Button
+            size="sm"
+            variant="outline-danger"
+            type="button"
+            onClick={handleDelete}
+          >
             Удалить
           </Button>
 

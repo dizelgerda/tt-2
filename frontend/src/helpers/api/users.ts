@@ -41,3 +41,10 @@ export function getCurrentUser() {
     credentials: "include",
   });
 }
+
+export function getUserByID(id: string) {
+  return fetch(`${BASE_URL}/users/${id}`, {
+    method: "GET",
+    credentials: "include",
+  });
+}

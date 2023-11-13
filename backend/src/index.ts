@@ -12,11 +12,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  fileUpload({
-    createParentPath: true,
-  }),
-);
+app.use(fileUpload());
 
 app.use(cors(config.corsOptions));
 

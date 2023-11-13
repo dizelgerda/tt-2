@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 interface User {
+  _id: mongoose.Schema.Types.ObjectId;
   name: string;
   email: string;
   password: string;

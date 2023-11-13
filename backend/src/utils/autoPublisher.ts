@@ -8,11 +8,11 @@ export function autoPublisher() {
           publishedAt: 1,
         });
 
-        const now = Date.now();
+        const now = new Date();
 
         for (const doc of news) {
-          if (now >= doc.publishedAt.getTime()) {
-            doc.updateOne({ published: true, publishedAt: now });
+          if (now.getTime() >= new Date(doc.publishedAt).getTime()) {
+            await doc.updateOne({ published: true, publishedAt: now });
           } else {
             break;
           }
