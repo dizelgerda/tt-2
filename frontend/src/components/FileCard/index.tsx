@@ -1,4 +1,4 @@
-import { File } from "@helpers/types";
+import { TFile } from "@helpers/types";
 import { Card } from "react-bootstrap";
 
 const BASE_URL = "http://localhost:3000";
@@ -7,11 +7,14 @@ function getFileLink(id: string) {
   return `${BASE_URL}/files/${id}`;
 }
 
-export default function FileCard({ _id, name }: File) {
-  const fileType = name.split(".").pop();
-  const isImage = ["jpg", "png", "swg", "jpeg", "gif"].includes(
-    fileType as string,
-  );
+export default function FileCard({ _id, name, type }: TFile) {
+  const isImage = [
+    "image/png",
+    "image/heic",
+    "image/heif",
+    "image/jpeg",
+    "image/avif",
+  ].includes(type);
 
   return isImage ? (
     <Card className="text-bg-dark">

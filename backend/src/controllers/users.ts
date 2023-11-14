@@ -8,6 +8,7 @@ import config from "../config";
 import UnauthorizedError from "../utils/errors/UnauthorizedError";
 import BadRequestError from "../utils/errors/BadRequestError";
 import NotFoundError from "../utils/errors/NotFoundError";
+import ConflictError from "../utils/errors/ConflictError";
 
 export async function createUser(
   req: Request,
@@ -16,7 +17,6 @@ export async function createUser(
 ) {
   try {
     const { name, email, password } = req.body;
-    console.log(req.body);
 
     const hash = await bcrypt.hash(password, await bcrypt.genSalt());
     const user = await User.create({ name, email, password: hash });
@@ -25,10 +25,8 @@ export async function createUser(
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
       next(new BadRequestError(err.message));
-      // } else if (
-      //   err && err.code && err.code === 11000
-      // ) {
-      //   next(new Error("vdkvnd"));
+    } else if (err instanceof Error && "code" in err && err.code === 11000) {
+      next(new ConflictError(err.message));
     } else {
       next(err);
     }

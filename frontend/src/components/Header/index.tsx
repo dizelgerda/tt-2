@@ -1,14 +1,18 @@
 import { logout } from "@helpers/api/users";
+import { useAppDispatch } from "@helpers/store/hooks";
+import { removeCurrentUser } from "@helpers/store/slices/currentUser";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Container, Navbar, Stack } from "react-bootstrap";
 
 export default function Header() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   async function handleLogout() {
     const res = await logout();
     if (res.ok) {
+      dispatch(removeCurrentUser());
       router.push("/sign-in");
     }
   }
@@ -19,7 +23,7 @@ export default function Header() {
         <Stack direction="horizontal" gap={2}>
           <Link href="/">
             <Button variant="link" type="button">
-              Главная
+              Новостная лента
             </Button>
           </Link>
           <Link href="/news/edit">

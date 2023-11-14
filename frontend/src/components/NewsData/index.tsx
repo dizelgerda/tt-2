@@ -1,10 +1,11 @@
 import { getUserByID } from "@helpers/api/users";
-import { News, User } from "@helpers/types";
+import { TNews, TUser } from "@helpers/types";
+import Link from "next/link";
 import { useState } from "react";
 import { Button, Card, OverlayTrigger, Popover, Stack } from "react-bootstrap";
 
-export default function NewsData({ _id, files, owner, publishedAt }: News) {
-  const [userData, setUserData] = useState<User>();
+export default function NewsData({ _id, files, owner, publishedAt }: TNews) {
+  const [userData, setUserData] = useState<TUser>();
 
   async function handleChangeToggle(isShow: boolean) {
     if (isShow) {
@@ -23,7 +24,9 @@ export default function NewsData({ _id, files, owner, publishedAt }: News) {
     <Card>
       <Card.Footer>{new Date(publishedAt).toLocaleString()}</Card.Footer>
       <Card.Body>
-        <Card.Title>ID-{_id}</Card.Title>
+        <Link href={`/news/${_id}`}>
+          <Card.Title>ID-{_id}</Card.Title>
+        </Link>
       </Card.Body>
       <Card.Footer>
         <Stack direction="horizontal">

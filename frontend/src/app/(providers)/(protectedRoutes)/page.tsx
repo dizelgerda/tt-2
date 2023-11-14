@@ -2,12 +2,12 @@
 
 import NewsData from "@components/NewsData";
 import { getAllNews } from "@helpers/api/news";
-import { News } from "@helpers/types";
+import { TNews } from "@helpers/types";
 import { useEffect, useState } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 
 export default function Home() {
-  const [data, setData] = useState<News[]>([]);
+  const [data, setData] = useState<TNews[]>([]);
 
   async function fetchData() {
     try {

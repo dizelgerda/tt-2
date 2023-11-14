@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import User from "./user";
 import File, { IFile } from "./file";
 
-interface News {
+export interface INews {
   _id: mongoose.Schema.Types.ObjectId;
   text: string;
   owner: mongoose.Schema.Types.ObjectId;
@@ -11,7 +11,7 @@ interface News {
   files: mongoose.Schema.Types.ObjectId[] | IFile[];
 }
 
-const newsSchema = new mongoose.Schema<News>(
+const newsSchema = new mongoose.Schema<INews>(
   {
     text: {
       type: mongoose.Schema.Types.String,
@@ -47,4 +47,4 @@ const newsSchema = new mongoose.Schema<News>(
   },
 );
 
-export default mongoose.model<News>("news", newsSchema);
+export default mongoose.model<INews>("news", newsSchema);

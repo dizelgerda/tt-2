@@ -1,8 +1,8 @@
-import { News } from "@helpers/types";
+import { TNews } from "@helpers/types";
 import Link from "next/link";
 import { Button, Card, Stack } from "react-bootstrap";
 
-interface NewsCardProps extends News {
+interface NewsCardProps extends TNews {
   onDelete(id: string): void;
 }
 
@@ -43,8 +43,7 @@ export default function NewsCard({
       </Card.Body>
       {!published ? (
         <Card.Footer>
-          Будет опубликована: {publicationDate.toLocaleDateString()}{" "}
-          {publicationDate.toLocaleTimeString()}
+          Будет опубликована: {publicationDate.toLocaleString()}
         </Card.Footer>
       ) : null}
     </Card>

@@ -4,7 +4,7 @@ import CustomError from "../utils/errors/CustomError";
 
 export default function (
   err: CustomError,
-  req: unknown,
+  _req: unknown,
   res: Response,
   next: NextFunction,
 ) {

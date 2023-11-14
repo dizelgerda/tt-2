@@ -1,8 +1,8 @@
 "use client";
 
-import { deleteFile, uploadFile } from "@helpers/api/files";
+import { deleteFile, uploadFiles } from "@helpers/api/files";
 import { createNews, getNewsByID, updateNews } from "@helpers/api/news";
-import { News, PlainObject, File } from "@helpers/types";
+import { TNews, PlainObject, TFile } from "@helpers/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useState, MouseEvent, useEffect, useRef } from "react";
 import {
@@ -62,7 +62,7 @@ function parseDate(dateInput: string, timeInput: string): Date {
 }
 
 export default function EditNews() {
-  const [data, setData] = useState<PlainObject<string | boolean | File[]>>({});
+  const [data, setData] = useState<PlainObject<string | boolean | TFile[]>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,7 +71,7 @@ export default function EditNews() {
     try {
       const res = await getNewsByID(newsID);
       if (res.ok) {
-        const news = (await res.json()) as News;
+        const news = (await res.json()) as TNews;
         const publishedDate = new Date(news.publishedAt);
 
         setData({
@@ -81,7 +81,7 @@ export default function EditNews() {
           text: news.text,
           publicationDate: formatDate(publishedDate),
           publicationTime: formatTime(publishedDate),
-          savedFiles: news.files as File[],
+          savedFiles: news.files as TFile[],
         });
       }
     } catch (err) {
@@ -136,8 +136,8 @@ export default function EditNews() {
       const res = await deleteFile(id);
 
       if (res.ok) {
-        const news = (await res.json()) as News;
-        setData({ ...data, savedFiles: news.files as File[] });
+        const news = (await res.json()) as TNews;
+        setData({ ...data, savedFiles: news.files as TFile[] });
       }
     } catch (err) {
       console.error(err);
@@ -146,6 +146,7 @@ export default function EditNews() {
 
   async function handleSubmit(e: ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
+
     let publishedAt;
     const files = (e.target.elements.namedItem("files") as HTMLInputElement)
       .files as FileList;
@@ -178,11 +179,14 @@ export default function EditNews() {
           const news = await res.json();
           const formData = new FormData();
 
+          formData.set("data", [].toString());
+          formData.set("names", [].toString());
           Array.from(files).forEach((file) => {
-            formData.append(file.name, file);
+            formData.append("data", file);
+            formData.append("names", file.name.toString());
           });
 
-          await uploadFile(formData, news._id);
+          await uploadFiles(formData, news._id);
         }
 
         router.push("/profile");
@@ -200,9 +204,10 @@ export default function EditNews() {
           <Form id="form" ref={formRef} onSubmit={handleSubmit}>
             <Stack gap={3}>
               <Form.Group>
-                <Form.Label>Текст</Form.Label>
+                <Form.Label htmlFor="text-input">Текст</Form.Label>
                 <Form.Control
                   as="textarea"
+                  id="text-input"
                   type="text"
                   name="text"
                   required
@@ -210,13 +215,16 @@ export default function EditNews() {
                   onChange={handleChange}
                   rows={10}
                 />
+                <Form.Text>Поддерживает Markdown.</Form.Text>
               </Form.Group>
 
               <Form.Group>
-                <Form.Label>Прикрепленные файлы</Form.Label>
-                {data.savedFiles && (data.savedFiles as File[]).length ? (
+                <Form.Label htmlFor="files-input">
+                  Прикрепленные файлы
+                </Form.Label>
+                {data.savedFiles && (data.savedFiles as TFile[]).length ? (
                   <Stack className="mb-2" direction="horizontal" gap={2}>
-                    {(data.savedFiles as File[]).map(({ _id, name }) => {
+                    {(data.savedFiles as TFile[]).map(({ _id, name }) => {
                       return (
                         <Card className="bg-light p-1" key={_id}>
                           <Stack direction="horizontal" gap={2}>
@@ -231,13 +239,18 @@ export default function EditNews() {
                     })}
                   </Stack>
                 ) : null}
-                <Form.Control type="file" name="files" multiple />
+                <Form.Control
+                  id="files-input"
+                  type="file"
+                  name="files"
+                  multiple
+                />
               </Form.Group>
 
               {!data.published ? (
                 <Form.Group>
                   <Form.Check
-                    id="delayed"
+                    id="delayed-checkbox"
                     type="checkbox"
                     label="Отложенная публикация"
                     name="delayed"
@@ -247,6 +260,7 @@ export default function EditNews() {
                   {data.delayed ? (
                     <InputGroup className="mt-2">
                       <Form.Control
+                        id="date-input"
                         type="date"
                         name="publicationDate"
                         required
@@ -258,6 +272,7 @@ export default function EditNews() {
                         min={formatDate(new Date())}
                       ></Form.Control>
                       <Form.Control
+                        id="time-input"
                         type="time"
                         name="publicationTime"
                         required

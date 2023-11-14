@@ -16,6 +16,6 @@ export default function (req: Request, res: Response, next: NextFunction) {
     next();
   } catch {
     req.app.set("currentUser", null);
-    next(new UnauthorizedError("Необходима авторизация."));
+    next(new UnauthorizedError());
   }
 }

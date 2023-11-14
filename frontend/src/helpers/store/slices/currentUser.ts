@@ -1,11 +1,11 @@
-import { User } from "@helpers/types";
+import { TUser } from "@helpers/types";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export const currentUserSlice = createSlice({
   name: "currentUser",
-  initialState: null as User | null,
+  initialState: null as TUser | null,
   reducers: {
-    setCurrentUser(_state, action: PayloadAction<User>) {
+    setCurrentUser(_state, action: PayloadAction<TUser>) {
       return action.payload;
     },
     removeCurrentUser() {

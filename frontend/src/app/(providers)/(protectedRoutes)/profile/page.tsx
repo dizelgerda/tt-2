@@ -3,14 +3,14 @@
 import NewsCard from "@components/NewsCard";
 import { deleteNews, getNewsByOwner } from "@helpers/api/news";
 import { useAppSelector } from "@helpers/store/hooks";
-import { News, User } from "@helpers/types";
+import { TNews, TUser } from "@helpers/types";
 import { useEffect, useState } from "react";
 import { Alert, Col, Container, Row, Stack } from "react-bootstrap";
 
 export default function Profile() {
-  const [publishedNews, setPublishedNews] = useState<News[]>([]);
-  const [unpublishedNews, setUnpublishedNews] = useState<News[]>([]);
-  const currentUser = useAppSelector((store) => store.currentUser) as User;
+  const [publishedNews, setPublishedNews] = useState<TNews[]>([]);
+  const [unpublishedNews, setUnpublishedNews] = useState<TNews[]>([]);
+  const currentUser = useAppSelector((store) => store.currentUser) as TUser;
 
   async function fetchNews() {
     try {
@@ -29,7 +29,7 @@ export default function Profile() {
     if (currentUser) {
       fetchNews();
     }
-  }, [currentUser]);
+  }, []);
 
   async function handleDelete(id: string) {
     try {

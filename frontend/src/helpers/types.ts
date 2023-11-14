@@ -1,23 +1,24 @@
 export type PlainObject<T = string> = { [key: string]: T };
 
-export type User = {
+export type TUser = {
   _id: string;
   name: string;
   email: string;
   createdAt: string;
 };
 
-export type File = {
+export type TFile = {
   _id: string;
   name: string;
+  type: string;
   newsID: string;
 };
 
-export type News = {
+export type TNews = {
   _id: string;
   text: string;
-  owner: string | User;
+  owner: string | TUser;
   published: boolean;
   publishedAt: string;
-  files: string[] | File[];
+  files: string[] | TFile[];
 };

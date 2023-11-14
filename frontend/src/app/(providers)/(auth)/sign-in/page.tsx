@@ -1,6 +1,8 @@
 "use client";
 
 import { login } from "@helpers/api/users";
+import { useAppDispatch } from "@helpers/store/hooks";
+import { setCurrentUser } from "@helpers/store/slices/currentUser";
 import { PlainObject } from "@helpers/types";
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
@@ -8,6 +10,7 @@ import { Button, Card, Form, Stack } from "react-bootstrap";
 
 export default function SignIn() {
   const [data, setData] = useState<PlainObject>({});
+  const dispatch = useAppDispatch();
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -18,7 +21,11 @@ export default function SignIn() {
     e.preventDefault();
 
     try {
-      await login(data.email, data.password);
+      const res = await login(data.email, data.password);
+      if (res.ok) {
+        const user = await res.json();
+        dispatch(setCurrentUser(user));
+      }
     } catch (err) {
       console.error(err);
     }
@@ -31,8 +38,9 @@ export default function SignIn() {
         <Form className="mt-4" onSubmit={handleSubmit}>
           <Stack gap={4}>
             <Form.Group>
-              <Form.Label>Email</Form.Label>
+              <Form.Label htmlFor="email-input">Email</Form.Label>
               <Form.Control
+                id="email-input"
                 name="email"
                 type="email"
                 required
@@ -42,8 +50,9 @@ export default function SignIn() {
             </Form.Group>
 
             <Form.Group>
-              <Form.Label>Пароль</Form.Label>
+              <Form.Label htmlFor="password-input">Пароль</Form.Label>
               <Form.Control
+                id="password-input"
                 name="password"
                 type="password"
                 required

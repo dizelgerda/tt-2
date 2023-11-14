@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { constants } from "node:http2";
 import News from "../models/news";
-import File, { IFile } from "../models/file";
+import File from "../models/file";
 import fs from "fs";
 import path from "node:path";
 import mongoose from "mongoose";
@@ -87,11 +87,11 @@ export async function getNewsByUserID(
 
     const [publishedNews, unpublishedNews] = await Promise.all([
       News.find({ owner: currentUser._id, published: true }).sort({
-        createdAt: -1,
+        publishedAt: -1,
       }),
       userID === currentUser._id
         ? News.find({ owner: currentUser._id, published: false }).sort({
-            createdAt: -1,
+            createdAt: 1,
           })
         : [],
     ]);
@@ -111,16 +111,14 @@ export async function deleteNews(
     const { docID: newsID } = req.params;
     const currentUser = req.app.get("currentUser");
 
-    const news = await News.findById(newsID)
-      .populate(["files"])
-      .orFail(new NotFoundError());
+    const news = await News.findById(newsID).orFail(new NotFoundError());
 
     if (String(news.owner) !== currentUser._id) {
       throw new ForbiddenError();
     }
 
-    for (const file of news.files as IFile[]) {
-      const doc = await File.findById(file._id).orFail(new NotFoundError());
+    for (const fileID of news.files as mongoose.Schema.Types.ObjectId[]) {
+      const doc = await File.findById(fileID).orFail(new NotFoundError());
 
       fs.unlinkSync(
         path.join(__dirname, "..", "..", "files", `${doc._id}-${doc.name}`),

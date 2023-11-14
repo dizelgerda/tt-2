@@ -29,11 +29,22 @@ export async function uploadFiles(
       throw new ForbiddenError();
     }
 
+    let { names } = req.body;
+    let data = req.files.data;
+
+    if (!Array.isArray(data)) {
+      data = [data];
+      names = [names];
+    }
+
     const files = [...news.files];
-    for (const key of Object.keys(req.files)) {
-      const file = req.files[key] as UploadedFile;
+    for (let key = 0; key !== data.length; key++) {
+      const file = data[key] as UploadedFile;
+      const fileName = names[key];
+
       const doc = new File({
-        name: file.name,
+        name: fileName,
+        type: file.mimetype,
         newsID: news._id,
       });
 
